@@ -1,0 +1,60 @@
+---
+title: "6.1 Exercise 2"
+author: "Jami McMillen"
+date: "2024-12-19"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Load required libraries
+
+```{r}
+
+if (!require(cluster)) install.packages("cluster")
+if (!require(dendextend)) install.packages("dendextend")
+
+library(cluster)
+library(dendextend)
+```
+
+# Load the dataset
+
+```{r}
+file_path <- "C:\\Users\\jamim\\Downloads\\lpga2008.csv"
+lpga_data <- read.csv(file_path)
+```
+
+# Select relevant columns for clustering (exclude 'Golfer' and 'Id')
+
+```{r}
+clustering_data <- lpga_data[, c(2:9)]
+```
+
+# Normalize the data for clustering
+
+```{r}
+clustering_data_scaled <- scale(clustering_data)
+```
+
+# Agglomerative Clustering
+
+```{r}
+agg_cluster <- hclust(dist(clustering_data_scaled), method = "ward.D2")
+plot(agg_cluster, main = "Agglomerative Clustering Dendrogram", xlab = "", sub = "", cex = 0.9)
+```
+
+# Divisive Clustering
+
+```{r}
+div_cluster <- diana(clustering_data_scaled)
+plot(as.dendrogram(div_cluster), main = "Divisive Clustering Dendrogram", xlab = "", sub = "", cex = 0.9)
+```
+
+# Insights
+
+```{r}
+cat("\nInsights:\n")
+cat("1. Agglomerative clustering groups golfers based on similar performance metrics.\n")
+cat("2. Divisive clustering splits the golfers into distinct groups, providing an alternate perspective on player segmentation.\n")
+```

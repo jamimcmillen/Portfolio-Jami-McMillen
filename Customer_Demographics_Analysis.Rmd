@@ -1,0 +1,190 @@
+---
+title: "Untitled"
+author: "Jami McMillen"
+date: "2024-12-18"
+output: pdf_document
+---
+
+## 1. Multiplication Script
+
+### Description:
+This section demonstrates the implementation of a multiplication table using both a "for" loop and a "while" loop. The goal is to display the multiplication table for numbers 1 through 10.
+
+---
+title: "Assignment-4.1"
+author: "Jami McMillen"
+date: "2024-12-18"
+output: pdf_document
+---
+
+# 1. Multiplication Script
+
+## Description:
+This section demonstrates the implementation of a multiplication table using both a "for" loop and a "while" loop.
+
+```{r, echo=TRUE}
+# Using a for loop to generate a multiplication table
+cat("Multiplication Table (For Loop):\n")
+for (i in 1:10) {
+  for (j in 1:10) {
+    result <- i * j
+    cat(i, "x", j, "=", result, "\n")
+  }
+  cat("\n")
+}
+
+cat("Multiplication Table (While Loop):\n")
+i <- 1
+while (i <= 10) {
+  j <- 1
+  while (j <= 10) {
+    result <- i * j
+    cat(i, "x", j, "=", result, "\n")
+    j <- j + 1
+  }
+  cat("\n")
+  i <- i + 1
+}
+```
+
+2. Density Plot of Income
+Description:
+We will plot the density of the income variable from the custdata.tsv dataset. This plot will show the distribution of income, highlighting areas of concentration.
+
+```{r}
+# Load required packages
+if (!require(ggplot2)) install.packages("ggplot2", repos = "http://cran.us.r-project.org")
+library(ggplot2)
+
+# Load customer data
+custdata <- read.table("C:/Users/jamim/Downloads/custdata.tsv", header = TRUE, sep = "\t")
+
+# Density plot
+ggplot(custdata, aes(x = income)) +
+  geom_density(fill = "skyblue", color = "blue", alpha = 0.6) +
+  ggtitle("Density Plot of Income") +
+  xlab("Income") +
+  ylab("Density") +
+  theme_minimal()
+
+```
+
+3. Bar Chart for Housing Type
+Description:
+In this section, a bar chart is created to show the distribution of housing types among customers, excluding the NA values.
+
+```{r}
+# Remove NA values in housing.type
+custdata_clean <- subset(custdata, !is.na(housing.type))
+
+# Plot bar chart
+ggplot(custdata_clean, aes(x = housing.type)) +
+  geom_bar(fill = "skyblue", color = "black") +
+  ggtitle("Bar Chart of Housing Type") +
+  xlab("Housing Type") +
+  ylab("Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+4. Married Customers and Health Insurance
+4.1: Extract Subset of Married Customers with Income > $50,000
+
+```{r}
+# Standardize health.ins to lowercase
+custdata$health.ins <- tolower(as.character(custdata$health.ins))
+married_high_income <- subset(custdata, marital.stat == "Married" & income > 50000)
+
+# Display the subset
+print(married_high_income)
+```
+
+4.2: Percentage of Married High-Income Customers with Health Insurance
+
+```{r}
+# Calculate percentage with health insurance
+percentage_health_ins <- mean(married_high_income$health.ins == "true", na.rm = TRUE) * 100
+cat("Percentage of married high-income customers with health insurance:", round(percentage_health_ins, 2), "%\n")
+```
+
+4.3: Compare with the Whole Dataset
+
+```{r}
+# Calculate overall percentage with health insurance
+overall_percentage_health_ins <- mean(custdata$health.ins == "true", na.rm = TRUE) * 100
+difference <- percentage_health_ins - overall_percentage_health_ins
+
+cat("Overall percentage of customers with health insurance:", round(overall_percentage_health_ins, 2), "%\n")
+cat("Difference in percentage:", round(difference, 2), "%\n")
+```
+
+5. Correlation Analysis
+
+Description:
+In this section, we calculate the correlation between the age, income, and num.vehicles variables from the custdata.tsv dataset, ensuring that we remove any invalid data points.
+
+```{r}
+# Clean data
+custdata_clean <- subset(custdata, !is.na(income) & !is.na(num.vehicles) & !is.na(age))
+
+# Calculate correlations
+cor_age_income <- cor(custdata_clean$age, custdata_clean$income)
+cor_income_vehicles <- cor(custdata_clean$income, custdata_clean$num.vehicles)
+cor_age_vehicles <- cor(custdata_clean$age, custdata_clean$num.vehicles)
+
+# Print results
+cat("Correlation between Age and Income:", round(cor_age_income, 2), "\n")
+cat("Correlation between Income and Number of Vehicles:", round(cor_income_vehicles, 2), "\n")
+cat("Correlation between Age and Number of Vehicles:", round(cor_age_vehicles, 2), "\n")
+```
+
+6. Dating Dataset Analysis
+6.1: Correlation Between Ice Cream, Miles, and Games
+
+```{r}
+# Load dating dataset
+dating <- read.csv("C:/Users/jamim/Downloads/dating.csv")
+
+# Calculate correlations
+cor_icecream_games <- cor(dating$Icecream, dating$Games)
+cor_miles_games <- cor(dating$Miles, dating$Games)
+
+cat("Correlation between Ice Cream and Games:", round(cor_icecream_games, 2), "\n")
+cat("Correlation between Miles and Games:", round(cor_miles_games, 2), "\n")
+```
+
+6.2: Regression of Miles to Predict Games
+
+```{r}
+# Regression
+model <- lm(Games ~ Miles, data = dating)
+
+# Regression plot
+ggplot(dating, aes(x = Miles, y = Games)) +
+  geom_point(color = "blue", alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  ggtitle("Regression of Games on Miles") +
+  xlab("Miles") +
+  ylab("Games") +
+  theme_minimal()
+```
+
+6.3: Clustering Analysis Based on "Like"
+
+```{r}
+# Set up clustering
+num_colors <- length(unique(dating$Like))
+color_palette <- scales::hue_pal()(num_colors)
+
+# Clustering plot
+ggplot(dating, aes(x = Miles, y = Games, color = as.factor(Like))) +
+  geom_point(size = 3, alpha = 0.6) +
+  ggtitle("Scatter Plot Colored by Like") +
+  xlab("Miles") +
+  ylab("Games") +
+  scale_color_manual(values = color_palette, name = "Like") +
+  theme_minimal()
+```
+
+References:
+Assistant. (2024). Discussion on R Markdown in R. OpenAI ChatGPT. Retrieved December 18, 2024, from https://chat.openai.com

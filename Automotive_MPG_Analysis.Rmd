@@ -1,0 +1,77 @@
+---
+title: "Assignment 5.1 - 2.2"
+author: "Jami McMillen"
+date: "2024-12-19"
+output: pdf_document
+---
+
+```{r}
+
+library(DBI)
+library(RMySQL)
+library(ggplot2)
+library(dplyr)
+library(cluster)
+library(factoextra)
+
+# Database connection details
+con <- dbConnect(
+  RMySQL::MySQL(),
+  dbname = "ads500",       # Database name
+  host = "localhost",      # Hostname
+  user = "root",           # Username
+  password = "Jesus1218@"  # Password
+)
+
+# Query the `mpg` table
+auto <- dbGetQuery(con, "SELECT * FROM mpg")
+
+# Close the connection
+dbDisconnect(con)
+
+# Display the first few rows of the dataset
+head(auto)
+
+```
+
+
+```{r}
+
+# Scatter plot: Horsepower vs Weight colored by MPG
+ggplot(auto, aes(x = horsepower, y = weight, color = mpg)) +
+  geom_point(size = 3, alpha = 0.7) +
+  scale_color_gradient(low = "blue", high = "red") +
+  labs(
+    title = "Scatter Plot: Horsepower vs Weight",
+    x = "Horsepower",
+    y = "Weight",
+    color = "MPG"
+  ) +
+  theme_minimal()
+
+```
+
+
+```{r}
+
+# Prepare data for clustering (remove missing values if any)
+clustering_data <- auto %>% select(horsepower, weight) %>% na.omit()
+
+# Perform k-means clustering (3 clusters chosen as an example)
+set.seed(123)  # For reproducibility
+kmeans_result <- kmeans(clustering_data, centers = 3)
+
+# Add cluster information to the dataset
+clustering_data$cluster <- as.factor(kmeans_result$cluster)
+
+# Scatter plot with clusters
+ggplot(clustering_data, aes(x = horsepower, y = weight, color = cluster)) +
+  geom_point(size = 3, alpha = 0.7) +
+  labs(
+    title = "K-Means Clustering: Horsepower vs Weight",
+    x = "Horsepower",
+    y = "Weight",
+    color = "Cluster"
+  ) +
+  theme_minimal()
+```

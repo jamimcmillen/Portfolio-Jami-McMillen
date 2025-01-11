@@ -1,0 +1,192 @@
+---
+title: "Predictive Analysis and Clustering of Washington State Housing Market Data in R"
+author: "Jami McMillen"
+date: "2024-12-20"
+output: pdf_document
+---
+
+Data Importing and Reprocessing
+
+```{r setup-import, include=TRUE, message=FALSE, warning=FALSE}
+# Load required libraries
+library(tidyverse)
+library(ggplot2)
+library(caret)
+library(corrplot)
+library(dplyr)
+
+# Import the dataset
+file_path <- "C:/Users/jamim/Downloads/Dataset 2 (House Sales)/house_sales.csv"
+housing_data <- read.csv(file_path)
+
+# Check dimensions and structure
+cat("Dimensions of the dataset:\n")
+print(dim(housing_data))
+cat("Structure of the dataset:\n")
+str(housing_data)
+```
+
+Explanation
+
+Loaded the dataset and inspected its structure and dimensions. The dataset contains 21 variables across 21,613 observations, with features ranging from numerical data - e.g., price, sqft_living - to categorical data - e.g., zipcode. This initial inspection helps us understand the scope of our analysis.
+
+
+
+
+Data Cleansing and Feature Engineering
+
+```{r}
+# Handle missing data
+cat("Summary of missing data:\n")
+missing_data <- sapply(housing_data, function(x) sum(is.na(x)))
+print(missing_data)
+
+# Impute missing data for numerical columns using the median
+housing_data <- housing_data %>%
+  mutate(
+    bedrooms = ifelse(is.na(bedrooms), median(bedrooms, na.rm = TRUE), bedrooms),
+    bathrooms = ifelse(is.na(bathrooms), median(bathrooms, na.rm = TRUE), bathrooms),
+    sqft_living = ifelse(is.na(sqft_living), median(sqft_living, na.rm = TRUE), sqft_living),
+    sqft_lot = ifelse(is.na(sqft_lot), median(sqft_lot, na.rm = TRUE), sqft_lot)
+  )
+
+# Feature engineering
+housing_data <- housing_data %>%
+  mutate(
+    house_age = 2024 - yr_built,
+    total_sqft = sqft_living + sqft_lot,
+    age_category = cut(yr_built, breaks = c(1900, 1950, 2000, 2022),
+                       labels = c("Old", "Mid-Age", "New"))
+  )
+
+# Check for duplicates and remove them
+housing_data <- distinct(housing_data)
+
+# Save the cleaned dataset for reproducibility
+write.csv(housing_data, "cleaned_housing_data.csv", row.names = FALSE)
+```
+
+Explanation
+
+Missing values were imputed with the median for numerical columns. This ensures data completeness without introducing biases from extreme values.
+Feature engineering included creating a house_age column and an age_category column to provide additional insights into the dataset.
+Duplicates were removed to ensure data integrity.
+
+
+
+Data Analysis and Visualization
+
+## Categorical and numerical variable identification
+```{r}
+cat("Summary of categorical variables:\n")
+print(sapply(housing_data, is.factor))
+cat("Summary of numerical variables:\n")
+print(sapply(housing_data, is.numeric))
+```
+
+## Summary statistics
+```{r}
+cat("Summary statistics:\n")
+summary(housing_data)
+```
+
+Visualizations
+
+## Price distribution
+```{R}
+ggplot(housing_data, aes(x = price)) +
+  geom_histogram(binwidth = 100000, fill = "blue", color = "black") +
+  ggtitle("Distribution of House Prices") +
+  xlab("Price") +
+  ylab("Frequency")
+```
+
+## Correlation heatmap
+```{r}
+numeric_data <- housing_data %>% select(where(is.numeric))
+cor_matrix <- cor(numeric_data)
+corrplot(cor_matrix, method = "circle", type = "upper", tl.col = "black", tl.srt = 45)
+```
+
+## Scatterplot for sqft_living vs price
+```{r}
+ggplot(housing_data, aes(x = sqft_living, y = price)) +
+  geom_point(color = "blue") +
+  ggtitle("Living Area vs Price")
+```
+Interpretation
+
+Price Distribution - The price distribution is right-skewed, indicating a majority of houses are priced below the mean price, with fewer high-value properties.
+Correlation Heatmap - Strong positive correlations were observed between sqft_living and price. This suggests larger houses tend to be more expensive.
+Scatterplot - The positive trend between sqft_living and price confirms the correlation and highlights the importance of living area as a predictor for price.
+
+
+
+# Boxplot of price by age category
+```{r}
+ggplot(housing_data, aes(x = age_category, y = price, fill = age_category)) +
+  geom_boxplot() +
+  ggtitle("Price Distribution by Age Category") +
+  xlab("Age Category") +
+  ylab("Price")
+```
+
+# Data Analytics: Regression Analysis
+```{r}
+# Split the data into training and test sets
+set.seed(123)
+train_index <- createDataPartition(housing_data$price, p = 0.8, list = FALSE)
+train_data <- housing_data[train_index, ]
+test_data <- housing_data[-train_index, ]
+
+# Linear regression
+lm_model <- lm(price ~ sqft_living + bedrooms + bathrooms + sqft_lot, data = train_data)
+summary(lm_model)
+```
+
+# Predictions and MSE
+```{r}
+predictions <- predict(lm_model, test_data)
+mse <- mean((test_data$price - predictions)^2)
+cat("Mean Squared Error for Linear Regression:", mse, "\n")
+```
+Interpretation
+
+Regression Model - The model explains 46.87% of the variance in house prices - R-squared 0.4687. sqft_living has the highest positive impact, while bedrooms negatively affect price.
+Mean Squared Error (MSE) - An MSE of roughly 73.6 billion indicates the model has reasonable predictive accuracy but can be improved with additional features.
+
+
+
+# Clustering Analysis
+```{r}
+# Scale the numerical features for clustering
+scaled_data <- scale(select(housing_data, c(sqft_living, sqft_lot, bathrooms, bedrooms)))
+
+# K-means clustering
+set.seed(123)
+kmeans_model <- kmeans(scaled_data, centers = 3)
+
+# Add cluster labels to the dataset
+housing_data$cluster <- factor(kmeans_model$cluster)
+
+# Visualize clusters
+ggplot(housing_data, aes(x = sqft_living, y = sqft_lot, color = cluster)) +
+  geom_point() +
+  ggtitle("K-means Clustering of Houses")
+```
+Interpretation
+
+Clustering - Three clusters represent distinct groupings based on house characteristics, sqft_living, sqft_lot, etc.
+Insights - Cluster 1 includes small houses with small lots, while Cluster 3 includes large houses with larger lots. Clustering helps identify market segments and potential areas for targeted pricing strategies.
+
+
+
+
+
+
+
+
+
+
+References
+OpenAI. (2024). ChatGPT response on R Markdown refinement. Personal communication.

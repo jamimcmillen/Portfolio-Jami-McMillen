@@ -15,4 +15,4 @@ Tools & Technologies
   - Visualization: Tableau, Power BI, Looker
   - Platforms: Snowflake, BigQuery, AWS Redshift
   - Machine Learning: Regression, Clustering, Decision Trees
-  - Feel free to explore the projects, and if you have any questions or suggestions, feel free to connect with me on [LinkedIn](www.linkedin.com/in/jami-mcmillen-b148425b)! 🚀 
+  - Feel free to explore the projects, and if you have any questions or suggestions, feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/jami-mcmillen-b148425b)! 🚀 
